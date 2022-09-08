@@ -18,7 +18,7 @@ require (
 	github.com/containernetworking/cni v0.8.1
 	github.com/containernetworking/plugins v0.8.7
 	github.com/coreos/go-iptables v0.6.0
-	github.com/gammazero/deque v0.1.0
+	github.com/gammazero/deque v0.2.0
 	github.com/go-logr/logr v1.2.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.6.0
