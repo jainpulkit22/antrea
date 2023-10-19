@@ -557,7 +557,7 @@
           - ${{sha1}}
           builders:
             - builder-conformance-win:
-                conformance_type: 'conformance'
+                conformance_type: 'windows-conformance'
           trigger_phrase: ^(?!Thanks for your PR).*/test-windows-(conformance|all).*
           white_list_target_branches: []
           allow_whitelist_orgs_as_admins: true
@@ -638,7 +638,7 @@
           - ${{sha1}}
           builders:
             - builder-conformance-win:
-                conformance_type: 'networkpolicy'
+                conformance_type: 'windows-networkpolicy'
           trigger_phrase: ^(?!Thanks for your PR).*/test-windows-(networkpolicy|all).*
           white_list_target_branches: []
           allow_whitelist_orgs_as_admins: true
@@ -718,7 +718,8 @@
           branches:
           - ${{sha1}}
           builders:
-            - builder-e2e-win
+            - builder-e2e-win:
+                e2e_type: 'windows-e2e'
           trigger_phrase: ^(?!Thanks for your PR).*/test-windows-(e2e|all).*
           white_list_target_branches: []
           allow_whitelist_orgs_as_admins: true
@@ -878,9 +879,8 @@
             branches:
                 - ${{sha1}}
             builders:
-                - builder-conformance-win-containerd:
-                      conformance_type: 'conformance'
-                      win_image_node: '{antrea_win_image_node_name}'
+                - builder-conformance-win:
+                      conformance_type: 'windows-containerd-conformance'
             trigger_phrase: ^(?!Thanks for your PR).*/test-windows-(containerd-conformance|all).*
             white_list_target_branches: [ ]
             allow_whitelist_orgs_as_admins: true
@@ -960,9 +960,8 @@
             branches:
                 - ${{sha1}}
             builders:
-                - builder-conformance-win-containerd:
-                      conformance_type: 'networkpolicy'
-                      win_image_node: '{antrea_win_image_node_name}'
+                - builder-conformance-win:
+                      conformance_type: 'windows-containerd-networkpolicy'
             trigger_phrase: ^(?!Thanks for your PR).*/test-windows-(containerd-networkpolicy|all).*
             white_list_target_branches: [ ]
             allow_whitelist_orgs_as_admins: true
@@ -1035,6 +1034,30 @@
             started_status: null
             wrappers: [ ]
             publishers: [ ]
+      - '{name}-{test_name}-no-scm':
+          test_name: windows-e2e-skip
+          node: null
+          description: 'This is for marking PR as passed.'
+          branches:
+          - ${{sha1}}
+          builders: []
+          allow_whitelist_orgs_as_admins: true
+          admin_list: '{antrea_admin_list}'
+          org_list: '{antrea_org_list}'
+          white_list: '{antrea_white_list}'
+          only_trigger_phrase: true
+          trigger_permit_all: false
+          trigger_phrase: ^(?!Thanks for your PR).*/skip-(windows-e2e|all).*
+          white_list_target_branches: []
+          status_context: jenkins-windows-e2e
+          status_url: --none--
+          success_status: Skipped test. Mark as succeeded.
+          failure_status: Skipped test. Mark as succeeded.
+          error_status: Skipped test. Mark as succeeded.
+          triggered_status: null
+          started_status: null
+          wrappers: []
+          publishers: []            
       - '{name}-{test_name}-for-pull-request':
             test_name: windows-containerd-e2e
             node: 'antrea-windows-containerd-testbed'
@@ -1042,8 +1065,8 @@
             branches:
                 - ${{sha1}}
             builders:
-                - builder-e2e-win-containerd:
-                      win_image_node: '{antrea_win_image_node_name}'
+            - builder-e2e-win:
+                e2e_type: 'windows-containerd-e2e'
             trigger_phrase: ^(?!Thanks for your PR).*/test-windows-(containerd-e2e|all).*
             white_list_target_branches: [ ]
             allow_whitelist_orgs_as_admins: true
@@ -1091,6 +1114,45 @@
                       default-excludes: true
                       fingerprint: false
                       only-if-success: false
+      - '{name}-{test_name}-for-period':
+          test_name: windows-containerd-e2e-userspace
+          node: 'antrea-windows-containerd-testbed'
+          description: 'This is for running e2e tests for testbed with conatinerd runtime.'
+          builders:
+            - builder-e2e-win:
+                e2e_type: 'windows-e2e-userspace'
+          branches:
+          - '*/main'
+          included_regions: []
+          cron: 'H H * * *'
+          ignore_post_commit_hooks: false
+          publishers:
+          - email:
+              recipients: projectantrea-dev@googlegroups.com
+          - archive:
+              allow-empty: true
+              artifacts: 'ci/jenkins/*sonobuoy*.tar.gz, whole-e2e-coverage.tar.gz'
+              case-sensitive: true
+              default-excludes: true
+              fingerprint: false
+              only-if-success: false
+          wrappers:
+          - credentials-binding:
+            - text:
+                credential-id: GOVC_URL
+                variable: GOVC_URL
+            - text:
+                credential-id: GOVC_USERNAME
+                variable: GOVC_USERNAME
+            - text:
+                credential-id: GOVC_PASSWORD
+                variable: GOVC_PASSWORD
+            - text:
+                credential-id: GOVC_DATACENTER
+                variable: GOVC_DATACENTER
+            - text:
+                credential-id: GOVC_DATASTORE
+                variable: GOVC_DATASTORE
       - '{name}-{test_name}-for-pull-request':
           test_name: kind-conformance
           node: 'antrea-kind-testbed'
